@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Tower : MonoBehaviour
 {
@@ -256,7 +257,7 @@ public class Tower : MonoBehaviour
             return;
         }
 
-        _runningShootDelay -= Time.unscaledDeltaTime;
+        _runningShootDelay -= Time.deltaTime;
         if (_runningShootDelay <= 0f)
         {
             Bullet bullet = LevelManager.Instance.GetBulletFromPool (_bulletPrefab);

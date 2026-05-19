@@ -52,6 +52,7 @@ public class LevelManager : MonoBehaviour
     private readonly Dictionary<int, List<Bullet>> _bulletPoolByPrefab = new Dictionary<int, List<Bullet>> ();
 
     public bool IsOver { get; private set; }
+    public bool IsPaused => _isPaused;
     public bool IsPreparationPhase => _currentPhase == BattlePhase.Preparation;
 
     [SerializeField] private int _maxLives = 20;
@@ -68,6 +69,7 @@ public class LevelManager : MonoBehaviour
     private int _currentGold;
     private int _currentRound;
     private BattlePhase _currentPhase;
+    private bool _isPaused;
 
     private void Start()
     {
@@ -85,17 +87,24 @@ public class LevelManager : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyDown (KeyCode.Escape))
+        {
+            SetPaused (!_isPaused);
+        }
+
         if (Input.GetKeyDown (KeyCode.R))
         {
+            SetPaused (false);
             SceneManager.LoadScene (SceneManager.GetActiveScene ().name);
         }
 
         if (IsOver)
         {
+            RefreshHud ();
             return;
         }
 
-        if (HasUsableEnemyPath ())
+        if (!_isPaused && HasUsableEnemyPath ())
         {
             UpdatePhase ();
             UpdateTowerActions ();
@@ -103,6 +112,25 @@ public class LevelManager : MonoBehaviour
         }
 
         RefreshHud ();
+    }
+
+    private void OnDestroy()
+    {
+        if (_instance == this)
+        {
+            Time.timeScale = 1f;
+        }
+    }
+
+    private void SetPaused (bool paused)
+    {
+        if (_isPaused == paused)
+        {
+            return;
+        }
+
+        _isPaused = paused;
+        Time.timeScale = paused ? 0f : 1f;
     }
 
     private void UpdatePhase ()
@@ -480,7 +508,7 @@ public class LevelManager : MonoBehaviour
 
     public bool TryBuyTower (int towerCost)
     {
-        if (!IsPreparationPhase || towerCost <= 0 || _currentGold < towerCost)
+        if (_isPaused || !IsPreparationPhase || towerCost <= 0 || _currentGold < towerCost)
         {
             return false;
         }
@@ -543,7 +571,12 @@ public class LevelManager : MonoBehaviour
 
         if (_phaseInfo != null)
         {
-            if (_currentPhase == BattlePhase.Preparation)
+            if (_isPaused)
+            {
+                _phaseInfo.text = "Пауза · натисніть ESC, щоб продовжити";
+                _phaseInfo.color = new Color (0.75f, 0.85f, 1f, 1f);
+            }
+            else if (_currentPhase == BattlePhase.Preparation)
             {
                 int secLeft = Mathf.Max (0, Mathf.CeilToInt (_preparationTimer));
                 _phaseInfo.text = $"Підготовка · можна ставити вежі · {secLeft} с";
@@ -672,6 +705,8 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
+        UiFont.ApplyTo (text);
+
         RectTransform rect = text.rectTransform;
         Vector3 lp = rect.localPosition;
         rect.localPosition = new Vector3 (lp.x, lp.y, 0f);
@@ -725,6 +760,7 @@ public class LevelManager : MonoBehaviour
 
     public void SetGameOver (bool isWin)
     {
+        SetPaused (false);
         IsOver = true;
         _statusInfo.text = isWin ? "You Win!" : "You Lose!";
         _panel.gameObject.SetActive (true);

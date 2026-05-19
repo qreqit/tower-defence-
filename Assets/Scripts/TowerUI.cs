@@ -31,7 +31,7 @@ public class TowerUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragH
 
     public void OnBeginDrag (PointerEventData eventData)
     {
-        if (LevelManager.Instance.IsOver || !LevelManager.Instance.IsPreparationPhase)
+        if (LevelManager.Instance.IsOver || LevelManager.Instance.IsPaused || !LevelManager.Instance.IsPreparationPhase)
         {
             return;
         }
@@ -106,11 +106,7 @@ public class TowerUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragH
         priceRect.localScale = Vector3.one;
 
         _priceText = priceObj.GetComponent<Text> ();
-        Font hudFont = ResolveUiFont ();
-        if (hudFont != null)
-        {
-            _priceText.font = hudFont;
-        }
+        UiFont.ApplyTo (_priceText);
 
         _priceText.fontSize = 20;
         _priceText.fontStyle = FontStyle.Bold;
@@ -125,40 +121,4 @@ public class TowerUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragH
         outline.effectDistance = new Vector2 (1.25f, -1.25f);
     }
 
-    private Font ResolveUiFont ()
-    {
-        Font builtin = Resources.GetBuiltinResource<Font> ("LegacyRuntime.ttf");
-        if (builtin != null)
-        {
-            return builtin;
-        }
-
-        builtin = Resources.GetBuiltinResource<Font> ("Arial.ttf");
-        if (builtin != null)
-        {
-            return builtin;
-        }
-
-        Canvas rootCanvas = GetComponentInParent<Canvas> ();
-        if (rootCanvas != null)
-        {
-            Text[] texts = rootCanvas.GetComponentsInChildren<Text> (true);
-            foreach (Text t in texts)
-            {
-                if (t != null && t.font != null)
-                {
-                    return t.font;
-                }
-            }
-        }
-
-        try
-        {
-            return Font.CreateDynamicFontFromOSFont (new[] { "Liberation Sans", "Arial", "DejaVu Sans" }, 16);
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }
