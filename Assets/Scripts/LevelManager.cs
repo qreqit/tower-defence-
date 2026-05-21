@@ -81,6 +81,7 @@ public class LevelManager : MonoBehaviour
         SetCurrentLives (_maxLives);
         SetGold (_startingGold);
         InstantiateAllTowerUI ();
+        LayoutTowerShop ();
         StartPreparationPhase ();
         RefreshHud ();
     }
@@ -657,34 +658,23 @@ public class LevelManager : MonoBehaviour
 
     private void LayoutHudElements ()
     {
+        const float leftInset = 16f;
+        const float topInset = 14f;
+        const float rowHeight = 40f;
+
+        if (_goldInfo != null)
+        {
+            ApplyHudRowLayout (_goldInfo.rectTransform, leftInset, topInset, 300f, rowHeight);
+        }
+
         if (_livesInfo != null)
         {
-            RectTransform r = _livesInfo.rectTransform;
-            r.anchorMin = new Vector2 (1f, 1f);
-            r.anchorMax = new Vector2 (1f, 1f);
-            r.pivot = new Vector2 (1f, 1f);
-            r.anchoredPosition = new Vector2 (-20f, -20f);
-            r.sizeDelta = new Vector2 (420f, 52f);
+            ApplyHudRowLayout (_livesInfo.rectTransform, leftInset, topInset + rowHeight, 220f, rowHeight);
         }
 
         if (_totalEnemyInfo != null)
         {
-            RectTransform r = _totalEnemyInfo.rectTransform;
-            r.anchorMin = new Vector2 (0f, 0f);
-            r.anchorMax = new Vector2 (0f, 0f);
-            r.pivot = new Vector2 (0f, 0f);
-            r.anchoredPosition = new Vector2 (110f, 130f);
-            r.sizeDelta = new Vector2 (380f, 48f);
-        }
-
-        if (_goldInfo != null)
-        {
-            RectTransform r = _goldInfo.rectTransform;
-            r.anchorMin = new Vector2 (0f, 0f);
-            r.anchorMax = new Vector2 (0f, 0f);
-            r.pivot = new Vector2 (0f, 0f);
-            r.anchoredPosition = new Vector2 (6f, 22f);
-            r.sizeDelta = new Vector2 (340f, 48f);
+            ApplyHudRowLayout (_totalEnemyInfo.rectTransform, leftInset, topInset + (rowHeight * 2f), 520f, rowHeight);
         }
 
         if (_phaseInfo != null)
@@ -693,8 +683,54 @@ public class LevelManager : MonoBehaviour
             r.anchorMin = new Vector2 (0.5f, 1f);
             r.anchorMax = new Vector2 (0.5f, 1f);
             r.pivot = new Vector2 (0.5f, 1f);
-            r.anchoredPosition = new Vector2 (0f, -14f);
-            r.sizeDelta = new Vector2 (920f, 52f);
+            r.anchoredPosition = new Vector2 (0f, -8f);
+            r.sizeDelta = new Vector2 (860f, 44f);
+        }
+    }
+
+    private static void ApplyHudRowLayout (RectTransform rect, float left, float top, float width, float height)
+    {
+        rect.anchorMin = new Vector2 (0f, 1f);
+        rect.anchorMax = new Vector2 (0f, 1f);
+        rect.pivot = new Vector2 (0f, 1f);
+        rect.anchoredPosition = new Vector2 (left, -top);
+        rect.sizeDelta = new Vector2 (width, height);
+    }
+
+    private void LayoutTowerShop ()
+    {
+        if (_towerUIParent == null)
+        {
+            return;
+        }
+
+        HorizontalLayoutGroup layout = _towerUIParent.GetComponent<HorizontalLayoutGroup> ();
+        if (layout != null)
+        {
+            layout.padding.left = 20;
+            layout.padding.right = 12;
+            layout.padding.top = 12;
+            layout.padding.bottom = 8;
+            layout.spacing = 16f;
+            layout.childAlignment = TextAnchor.MiddleLeft;
+        }
+
+        const float slotSize = 108f;
+        for (int i = 0; i < _towerUIParent.childCount; i++)
+        {
+            RectTransform child = _towerUIParent.GetChild (i) as RectTransform;
+            if (child == null)
+            {
+                continue;
+            }
+
+            child.sizeDelta = new Vector2 (slotSize, slotSize);
+        }
+
+        RectTransform shopRoot = _towerUIParent.parent as RectTransform;
+        if (shopRoot != null)
+        {
+            shopRoot.anchoredPosition = new Vector2 (-24f, shopRoot.anchoredPosition.y);
         }
     }
 
@@ -717,6 +753,7 @@ public class LevelManager : MonoBehaviour
         }
 
         text.raycastTarget = false;
+        text.alignment = TextAnchor.UpperLeft;
         text.horizontalOverflow = HorizontalWrapMode.Overflow;
         text.verticalOverflow = VerticalWrapMode.Overflow;
 

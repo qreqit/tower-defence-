@@ -12,10 +12,16 @@ public static class UiFont
             return _cachedHudFont;
         }
 
+        _cachedHudFont = Resources.Load<Font> ("Fonts/DejaVuSans");
+        if (_cachedHudFont != null)
+        {
+            return _cachedHudFont;
+        }
+
         try
         {
             _cachedHudFont = Font.CreateDynamicFontFromOSFont (
-                new[] { "Liberation Sans", "DejaVu Sans", "Noto Sans", "FreeSans", "Arial" },
+                new[] { "DejaVu Sans", "Liberation Sans", "Noto Sans", "FreeSans", "Arial" },
                 32);
             if (_cachedHudFont != null)
             {
